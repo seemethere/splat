@@ -12,6 +12,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/urfave/cli v1.20.0
 	golang.org/x/net v0.0.0-20190603091049-60506f45cf65 // indirect
+	golang.org/x/xerrors v0.0.0-20190513163551-3ee3066db522
 )
 
 replace github.com/docker/docker => github.com/docker/engine v0.0.0-20190109173153-a79fabbfe841

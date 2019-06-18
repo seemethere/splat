@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/docker/docker/client"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"golang.org/x/xerrors"
 )
 
 var (
@@ -33,6 +35,13 @@ func doSplat(c *cli.Context) error {
 		return err
 	}
 	docker.NegotiateAPIVersion(ctx)
+
+	switch {
+	case c.NArg() == 0:
+		return xerrors.Errorf("No args specfied, see --help for usage")
+	case c.NArg() > 2:
+		return xerrors.Errorf("Too many args, see --help for usage")
+	}
 
 	// TODO maybe this can support a list of things instead of just one eventually
 	ourImage := c.Args().Get(0)
@@ -166,8 +175,8 @@ func fetchImage(docker client.APIClient, ref string) (io.ReadCloser, error) {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "splat"
 	app.Usage = "take container images and put them on your filesystem"
+	app.UsageText = fmt.Sprintf("%s [container image]:source] [destination]", app.Name)
 	app.Action = doSplat
 	app.Version = "0.0.1"
 	log.SetLevel(log.DebugLevel)
