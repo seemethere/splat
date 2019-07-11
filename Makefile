@@ -1,4 +1,4 @@
-bin/splat: main.go
+bin/splat: splat.go
 	go build -o $@ .
 
 clean:
