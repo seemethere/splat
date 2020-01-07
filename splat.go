@@ -17,7 +17,6 @@ import (
 	"github.com/docker/docker/client"
 	log "github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
-	"golang.org/x/xerrors"
 )
 
 var (
@@ -38,13 +37,14 @@ func doSplat(c *cli.Context) error {
 
 	switch {
 	case c.NArg() == 0:
-		return xerrors.Errorf("No args specfied, see --help for usage")
+		return fmt.Errorf("No args specfied, see --help for usage")
 	case c.NArg() > 2:
-		return xerrors.Errorf("Too many args, see --help for usage")
+		return fmt.Errorf("Too many args, see --help for usage")
 	}
 
 	// TODO maybe this can support a list of things instead of just one eventually
 	ourImage := c.Args().Get(0)
+	outDir := c.Args().Get(1)
 	log.Debugf("Loading image %s", ourImage)
 	save, err := fetchImage(docker, ourImage)
 	if err != nil {
@@ -86,7 +86,7 @@ func doSplat(c *cli.Context) error {
 				panic("wtf")
 			}
 			log.Debugf("Unpacking '%s' size: %d", layer, len(tarBytes))
-			err := unpackLayer(tarBytes)
+			err := unpackLayer(tarBytes, outDir)
 			if err != nil {
 				return err
 			}
@@ -96,7 +96,7 @@ func doSplat(c *cli.Context) error {
 	return nil
 }
 
-func unpackLayer(tarBytes []byte) error {
+func unpackLayer(tarBytes []byte, outDir string) error {
 	tarReader := tar.NewReader(bytes.NewReader(tarBytes))
 	for {
 		hdr, err := tarReader.Next()
@@ -108,7 +108,7 @@ func unpackLayer(tarBytes []byte) error {
 		}
 		base := filepath.Base(hdr.Name)
 		dir := filepath.Dir(hdr.Name)
-		outFile := filepath.Join("out", hdr.Name)
+		outFile := filepath.Join(outDir, hdr.Name)
 		switch {
 		// whiteout file, delete files
 		case strings.HasPrefix(base, ".wh."):
